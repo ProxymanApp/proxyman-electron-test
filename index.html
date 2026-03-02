@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'">
+    <title>Proxyman Electron Test</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+        }
+        h1 {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+        .buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        button:active { opacity: 0.8; }
+        .btn-get { background: #0e639c; color: #fff; }
+        .btn-post { background: #4e9a06; color: #fff; }
+        .btn-clear { background: #6c6c6c; color: #fff; margin-left: auto; }
+        #console {
+            flex: 1;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <h1>Proxyman Electron Test</h1>
+    <div class="buttons">
+        <button class="btn-get" id="btn-get">Send GET</button>
+        <button class="btn-post" id="btn-post">Send POST</button>
+        <button class="btn-clear" id="btn-clear">Clear</button>
+    </div>
+    <div id="console"></div>
+    <script>
+        const consoleDiv = document.getElementById('console');
+
+        function appendLog(text) {
+            consoleDiv.textContent += text + '\n';
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        document.getElementById('btn-get').addEventListener('click', () => {
+            window.electronAPI.sendGet();
+        });
+
+        document.getElementById('btn-post').addEventListener('click', () => {
+            window.electronAPI.sendPost();
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', () => {
+            consoleDiv.textContent = '';
+        });
+
+        window.electronAPI.onLog((message) => {
+            appendLog(message);
+        });
+    </script>
+</body>
+</html>
