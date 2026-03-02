@@ -1,40 +1,28 @@
 #!/bin/bash
-set -e
+# Build the Proxyman Electron Test app for integration testing.
+# Produces: ProxymanElectronTest-darwin-arm64/ProxymanElectronTest.app
 
-APP_NAME="ProxymanElectronTest"
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-OUTPUT_DIR="$PROJECT_DIR/dist"
+set -euo pipefail
 
-echo "==> Cleaning previous builds..."
-rm -rf "$OUTPUT_DIR"
-rm -rf "$PROJECT_DIR/ProxymanElectronTest-darwin-arm64"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+cd "$SCRIPT_DIR"
 
-echo "==> Installing dependencies (production only)..."
-cd "$PROJECT_DIR"
+echo "==> Installing dependencies..."
 npm install
 
-echo "==> Installing electron-packager..."
-npx --yes electron-packager@latest \
-  "$PROJECT_DIR" \
-  "$APP_NAME" \
+echo "==> Packaging Electron app (arm64)..."
+npx @electron/packager . ProxymanElectronTest \
   --platform=darwin \
   --arch=arm64 \
-  --out="$OUTPUT_DIR" \
   --overwrite \
-  --asar \
-  --prune=true \
-  --ignore="^/(dist|\.git|\.DS_Store|build\.sh)" \
-  --app-bundle-id="com.proxyman.electron-test" \
-  --app-version="1.0.0"
+  --ignore="node_modules" \
+  --ignore="package-lock.json" \
+  --ignore=".DS_Store" \
+  --ignore="build.sh" \
+  --ignore="README.md"
 
-APP_PATH="$OUTPUT_DIR/$APP_NAME-darwin-arm64/$APP_NAME.app"
+APP_PATH="$SCRIPT_DIR/ProxymanElectronTest-darwin-arm64/ProxymanElectronTest.app"
+SIZE=$(du -sh "$APP_PATH" | cut -f1)
 
 echo ""
-echo "==> Build complete!"
-echo "    App: $APP_PATH"
-du -sh "$APP_PATH"
-echo ""
-echo "==> To run:"
-echo "    open \"$APP_PATH\""
-echo "    # or with console output:"
-echo "    \"$APP_PATH/Contents/MacOS/$APP_NAME\""
+echo "==> Build complete: $APP_PATH ($SIZE)"

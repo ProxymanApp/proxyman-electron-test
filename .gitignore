@@ -57,3 +57,5 @@ spec/fixtures/logo.png
 .yarn/install-state.gz
 
 ProxymanElectronTest-darwin-arm64/
+
+ProxymanElectronTest-darwin-arm64/

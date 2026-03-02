@@ -2,87 +2,51 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'">
     <title>Proxyman Electron Test</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-            background: #1e1e1e;
-            color: #d4d4d4;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 16px;
-        }
-        h1 {
-            font-size: 18px;
-            color: #fff;
-            margin-bottom: 12px;
-        }
-        .buttons {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        button:active { opacity: 0.8; }
-        .btn-get { background: #0e639c; color: #fff; }
-        .btn-post { background: #4e9a06; color: #fff; }
-        .btn-clear { background: #6c6c6c; color: #fff; margin-left: auto; }
-        #console {
-            flex: 1;
-            background: #0d0d0d;
-            border: 1px solid #333;
-            border-radius: 4px;
-            padding: 10px;
-            font-family: 'Menlo', 'Consolas', 'Courier New', monospace;
-            font-size: 13px;
-            line-height: 1.5;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 24px; background: #1e1e2e; color: #cdd6f4; }
+        h1 { font-size: 18px; margin-bottom: 16px; }
+        .status { padding: 8px 12px; margin: 8px 0; border-radius: 6px; font-size: 14px; }
+        .pending { background: #313244; color: #a6adc8; }
+        .success { background: #1e3a2f; color: #a6e3a1; }
+        .error { background: #3a1e1e; color: #f38ba8; }
     </style>
 </head>
 <body>
     <h1>Proxyman Electron Test</h1>
-    <div class="buttons">
-        <button class="btn-get" id="btn-get">Send GET</button>
-        <button class="btn-post" id="btn-post">Send POST</button>
-        <button class="btn-clear" id="btn-clear">Clear</button>
-    </div>
-    <div id="console"></div>
-    <script>
-        const consoleDiv = document.getElementById('console');
+    <div id="get-status" class="status pending">GET /get — pending...</div>
+    <div id="post-status" class="status pending">POST /post — pending...</div>
+    <div id="overall" class="status pending">Waiting for requests...</div>
 
-        function appendLog(text) {
-            consoleDiv.textContent += text + '\n';
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    <script>
+        // Renderer triggers HTTPS requests via IPC to the main process.
+        // Main process performs the actual network calls and returns results.
+        function setStatus(id, text, cls) {
+            const el = document.getElementById(id);
+            el.className = 'status ' + cls;
+            el.textContent = text;
         }
 
-        document.getElementById('btn-get').addEventListener('click', () => {
-            window.electronAPI.sendGet();
-        });
+        async function run() {
+            try {
+                // GET request — triggered from renderer, executed in main process
+                const getResult = await window.api.fetchGet();
+                setStatus('get-status', 'GET /get — ' + getResult.status + ' OK', 'success');
 
-        document.getElementById('btn-post').addEventListener('click', () => {
-            window.electronAPI.sendPost();
-        });
+                // POST request — triggered from renderer, executed in main process
+                const postResult = await window.api.fetchPost();
+                setStatus('post-status', 'POST /post — ' + postResult.status + ' OK', 'success');
 
-        document.getElementById('btn-clear').addEventListener('click', () => {
-            consoleDiv.textContent = '';
-        });
+                setStatus('overall', 'All requests completed successfully!', 'success');
+            } catch (err) {
+                setStatus('overall', 'Error: ' + err.message, 'error');
+            }
 
-        window.electronAPI.onLog((message) => {
-            appendLog(message);
-        });
+            // Signal main process that all requests are done
+            window.api.notifyDone();
+        }
+
+        run();
     </script>
 </body>
 </html>
